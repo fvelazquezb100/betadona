@@ -119,7 +119,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_league_standings: {
+        Args: { league_id_param: string }
+        Returns: {
+          id: string
+          username: string
+          total_points: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
