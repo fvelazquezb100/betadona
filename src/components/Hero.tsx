@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import soccerHero from "@/assets/soccer-hero.jpg";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
+  const handleSignUpClick = () => {
+    navigate("/signup");
+  };
+
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-soccer-field-light overflow-hidden">
       {/* Background Image with Overlay */}
@@ -38,6 +45,7 @@ const Hero = () => {
           variant="hero" 
           size="xl" 
           className="mb-8"
+          onClick={handleSignUpClick}
         >
           Sign Up to Play
         </Button>
