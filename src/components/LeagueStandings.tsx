@@ -25,10 +25,25 @@ const LeagueStandings = () => {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUserId(user?.id || null);
 
-        // Fetch all profiles sorted by total_points descending
+        if (!user) return;
+
+        // First, get current user's league_id
+        const { data: currentUserProfile } = await supabase
+          .from('profiles')
+          .select('league_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!currentUserProfile?.league_id) {
+          setStandings([]);
+          return;
+        }
+
+        // Fetch all profiles in the same league sorted by total_points descending
         const { data: profiles, error } = await supabase
           .from('profiles')
           .select('id, username, total_points')
+          .eq('league_id', currentUserProfile.league_id)
           .order('total_points', { ascending: false });
 
         if (error) {
