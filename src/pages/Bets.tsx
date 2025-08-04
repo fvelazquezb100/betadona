@@ -1,45 +1,74 @@
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Match {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  startTime: string;
+  odds: {
+    homeWin: number;
+    draw: number;
+    awayWin: number;
+  };
+}
 
 const Bets = () => {
-  const matches = [
-    {
-      id: 1,
-      homeTeam: "Real Madrid",
-      awayTeam: "FC Barcelona",
-      startTime: "Sat, 21:00",
-      odds: {
-        homeWin: 2.10,
-        draw: 3.50,
-        awayWin: 3.20
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const formatMatchTime = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase.functions.invoke('fetch-odds');
+        
+        if (error) {
+          console.error('Error fetching odds:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch live betting data. Please try again later.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data?.matches) {
+          setMatches(data.matches);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load betting data.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
-    },
-    {
-      id: 2,
-      homeTeam: "Atlético de Madrid",
-      awayTeam: "Sevilla FC",
-      startTime: "Sun, 18:30",
-      odds: {
-        homeWin: 1.90,
-        draw: 3.80,
-        awayWin: 4.00
-      }
-    },
-    {
-      id: 3,
-      homeTeam: "Valencia CF",
-      awayTeam: "Real Betis",
-      startTime: "Sun, 21:00",
-      odds: {
-        homeWin: 2.50,
-        draw: 3.30,
-        awayWin: 2.80
-      }
-    }
-  ];
+    };
+
+    fetchMatches();
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-soccer-field-light/30">
@@ -47,17 +76,45 @@ const Bets = () => {
       <Navigation />
       
       <main className="container mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-soccer-field mb-8">Upcoming Matchday</h1>
+        <h1 className="text-3xl font-bold text-soccer-field mb-8">Spanish LaLiga - Live Odds</h1>
         
-        <div className="space-y-6">
-          {matches.map((match) => (
+        {loading ? (
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="bg-card border shadow-sm">
+                <CardHeader className="pb-4">
+                  <Skeleton className="h-6 w-3/4 mx-auto" />
+                  <Skeleton className="h-4 w-1/2 mx-auto" />
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    {[1, 2, 3].map((j) => (
+                      <div key={j} className="text-center">
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-12 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : matches.length === 0 ? (
+          <Card className="bg-card border shadow-sm">
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">No upcoming matches available at the moment.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {matches.map((match) => (
             <Card key={match.id} className="bg-card border shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl text-center">
                   {match.homeTeam} vs {match.awayTeam}
                 </CardTitle>
                 <p className="text-center text-muted-foreground font-medium">
-                  {match.startTime}
+                  {formatMatchTime(match.startTime)}
                 </p>
               </CardHeader>
               
@@ -123,8 +180,9 @@ const Bets = () => {
                 </Tabs>
               </CardContent>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
