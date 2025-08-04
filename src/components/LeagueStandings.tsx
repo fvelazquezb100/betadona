@@ -39,15 +39,12 @@ const LeagueStandings = () => {
           return;
         }
 
-        // Fetch all profiles in the same league sorted by total_points descending
+        // Use RPC to get league standings
         const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('id, username, total_points')
-          .eq('league_id', currentUserProfile.league_id)
-          .order('total_points', { ascending: false });
+          .rpc('get_league_standings', { league_id_param: currentUserProfile.league_id });
 
         if (error) {
-          console.error('Error fetching profiles:', error);
+          console.error('Error fetching standings:', error);
           return;
         }
 
