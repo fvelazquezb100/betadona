@@ -47,9 +47,9 @@ Deno.serve(async (req) => {
 
     console.log('Fetching Spanish LaLiga odds...');
     
-    // Fetch upcoming Spanish LaLiga matches with odds
+    // Fetch upcoming Spanish LaLiga matches with odds (h2h, totals, spreads)
     const response = await fetch(
-      `https://api.the-odds-api.com/v4/sports/soccer_spain_la_liga/odds?apiKey=${apiKey}&regions=eu&markets=h2h&oddsFormat=decimal&dateFormat=iso`,
+      `https://api.the-odds-api.com/v4/sports/soccer_spain_la_liga/odds?apiKey=${apiKey}&regions=eu&markets=h2h,totals,spreads&oddsFormat=decimal&dateFormat=iso`,
       {
         method: 'GET',
         headers: {
@@ -76,10 +76,8 @@ Deno.serve(async (req) => {
 
     // Transform the data to match our frontend structure
     const transformedMatches = oddsData.map((match) => {
-      // Find a bookmaker with h2h odds
-      const bookmakerWithH2H = match.bookmakers.find(bookmaker => 
-        bookmaker.markets.some(market => market.key === 'h2h')
-      );
+      // Find a bookmaker with all markets
+      const bookmaker = match.bookmakers[0]; // Use first bookmaker for simplicity
       
       let odds = {
         homeWin: 2.00,
@@ -87,10 +85,15 @@ Deno.serve(async (req) => {
         awayWin: 2.50
       };
 
-      if (bookmakerWithH2H) {
-        const h2hMarket = bookmakerWithH2H.markets.find(market => market.key === 'h2h');
+      let totals = {
+        over25: 2.00,
+        under25: 1.80
+      };
+
+      if (bookmaker) {
+        // Process h2h market
+        const h2hMarket = bookmaker.markets.find(market => market.key === 'h2h');
         if (h2hMarket && h2hMarket.outcomes.length >= 3) {
-          // Map outcomes to our structure
           const homeOutcome = h2hMarket.outcomes.find(outcome => outcome.name === match.home_team);
           const awayOutcome = h2hMarket.outcomes.find(outcome => outcome.name === match.away_team);
           const drawOutcome = h2hMarket.outcomes.find(outcome => outcome.name === 'Draw');
@@ -101,6 +104,18 @@ Deno.serve(async (req) => {
             awayWin: awayOutcome?.price || 2.50
           };
         }
+
+        // Process totals market (over/under)
+        const totalsMarket = bookmaker.markets.find(market => market.key === 'totals');
+        if (totalsMarket && totalsMarket.outcomes.length >= 2) {
+          const overOutcome = totalsMarket.outcomes.find(outcome => outcome.name === 'Over');
+          const underOutcome = totalsMarket.outcomes.find(outcome => outcome.name === 'Under');
+
+          totals = {
+            over25: overOutcome?.price || 2.00,
+            under25: underOutcome?.price || 1.80
+          };
+        }
       }
 
       return {
@@ -108,7 +123,8 @@ Deno.serve(async (req) => {
         homeTeam: match.home_team,
         awayTeam: match.away_team,
         startTime: match.commence_time,
-        odds
+        odds,
+        totals
       };
     });
 
