@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import BetSlip, { BetSelection } from "@/components/BetSlip";
@@ -20,9 +20,29 @@ interface Match {
     awayWin: number;
   };
   totals: {
+    over05: number;
+    under05: number;
+    over15: number;
+    under15: number;
     over25: number;
     under25: number;
+    over35: number;
+    under35: number;
   };
+  doubleChance: {
+    homeOrDraw: number;
+    awayOrDraw: number;
+    homeOrAway: number;
+  };
+  bothTeamsToScore: {
+    yes: number;
+    no: number;
+  };
+  spreads: Array<{
+    point: number;
+    homeOdds: number;
+    awayOdds: number;
+  }>;
 }
 
 const Bets = () => {
@@ -195,92 +215,272 @@ const Bets = () => {
                   </CardHeader>
                   
                   <CardContent>
-                    <Tabs defaultValue="main" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3 mb-6">
-                        <TabsTrigger value="main">Main</TabsTrigger>
-                        <TabsTrigger value="goals">Goals</TabsTrigger>
-                        <TabsTrigger value="player-props">Player Props</TabsTrigger>
-                      </TabsList>
-                      
-                      <TabsContent value="main">
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2 font-medium">
-                              {match.homeTeam} to Win
-                            </p>
-                            <Button
-                              variant="outline"
-                              onClick={() => addToBetSlip(match, `${match.homeTeam} to Win`, match.odds.homeWin)}
-                              className="w-full h-12 text-lg font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
-                            >
-                              {match.odds.homeWin.toFixed(2)}
-                            </Button>
+                    <Accordion type="single" defaultValue="result" collapsible className="w-full">
+                      {/* Result Section */}
+                      <AccordionItem value="result">
+                        <AccordionTrigger className="text-lg font-semibold">
+                          Result
+                        </AccordionTrigger>
+                        <AccordionContent className="space-y-6">
+                          {/* Standard 1X2 */}
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-3">Match Winner</h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {match.homeTeam}
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, `${match.homeTeam} to Win`, match.odds.homeWin)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.odds.homeWin.toFixed(2)}
+                                </Button>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Draw
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, 'Draw', match.odds.draw)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.odds.draw.toFixed(2)}
+                                </Button>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {match.awayTeam}
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, `${match.awayTeam} to Win`, match.odds.awayWin)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.odds.awayWin.toFixed(2)}
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2 font-medium">
-                              Draw
-                            </p>
-                            <Button
-                              variant="outline"
-                              onClick={() => addToBetSlip(match, 'Draw', match.odds.draw)}
-                              className="w-full h-12 text-lg font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
-                            >
-                              {match.odds.draw.toFixed(2)}
-                            </Button>
+
+                          {/* Double Chance */}
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-3">Double Chance</h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {match.homeTeam} or Draw
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, `${match.homeTeam} or Draw`, match.doubleChance.homeOrDraw)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.doubleChance.homeOrDraw.toFixed(2)}
+                                </Button>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {match.awayTeam} or Draw
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, `${match.awayTeam} or Draw`, match.doubleChance.awayOrDraw)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.doubleChance.awayOrDraw.toFixed(2)}
+                                </Button>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  {match.homeTeam} or {match.awayTeam}
+                                </p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, `${match.homeTeam} or ${match.awayTeam}`, match.doubleChance.homeOrAway)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.doubleChance.homeOrAway.toFixed(2)}
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2 font-medium">
-                              {match.awayTeam} to Win
-                            </p>
-                            <Button
-                              variant="outline"
-                              onClick={() => addToBetSlip(match, `${match.awayTeam} to Win`, match.odds.awayWin)}
-                              className="w-full h-12 text-lg font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
-                            >
-                              {match.odds.awayWin.toFixed(2)}
-                            </Button>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Goals Section */}
+                      <AccordionItem value="goals">
+                        <AccordionTrigger className="text-lg font-semibold">
+                          Goals
+                        </AccordionTrigger>
+                        <AccordionContent className="space-y-6">
+                          {/* Both Teams to Score */}
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-3">Both Teams to Score</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">Yes</p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, 'Both Teams to Score - Yes', match.bothTeamsToScore.yes)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.bothTeamsToScore.yes.toFixed(2)}
+                                </Button>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs text-muted-foreground mb-1">No</p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => addToBetSlip(match, 'Both Teams to Score - No', match.bothTeamsToScore.no)}
+                                  className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                >
+                                  {match.bothTeamsToScore.no.toFixed(2)}
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="goals">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2 font-medium">
-                              Over 2.5 Goals
-                            </p>
-                            <Button
-                              variant="outline"
-                              onClick={() => addToBetSlip(match, 'Over 2.5 Goals', match.totals.over25)}
-                              className="w-full h-12 text-lg font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
-                            >
-                              {match.totals.over25.toFixed(2)}
-                            </Button>
+
+                          {/* Total Goals */}
+                          <div>
+                            <h4 className="text-sm font-medium text-muted-foreground mb-3">Total Goals</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="space-y-2">
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Over 0.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Over 0.5 Goals', match.totals.over05)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.over05.toFixed(2)}
+                                  </Button>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Over 1.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Over 1.5 Goals', match.totals.over15)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.over15.toFixed(2)}
+                                  </Button>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Over 2.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Over 2.5 Goals', match.totals.over25)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.over25.toFixed(2)}
+                                  </Button>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Over 3.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Over 3.5 Goals', match.totals.over35)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.over35.toFixed(2)}
+                                  </Button>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Under 0.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Under 0.5 Goals', match.totals.under05)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.under05.toFixed(2)}
+                                  </Button>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Under 1.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Under 1.5 Goals', match.totals.under15)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.under15.toFixed(2)}
+                                  </Button>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Under 2.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Under 2.5 Goals', match.totals.under25)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.under25.toFixed(2)}
+                                  </Button>
+                                </div>
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-1">Under 3.5</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Under 3.5 Goals', match.totals.under35)}
+                                    className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                  >
+                                    {match.totals.under35.toFixed(2)}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          
-                          <div className="text-center">
-                            <p className="text-sm text-muted-foreground mb-2 font-medium">
-                              Under 2.5 Goals
-                            </p>
-                            <Button
-                              variant="outline"
-                              onClick={() => addToBetSlip(match, 'Under 2.5 Goals', match.totals.under25)}
-                              className="w-full h-12 text-lg font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
-                            >
-                              {match.totals.under25.toFixed(2)}
-                            </Button>
-                          </div>
-                        </div>
-                      </TabsContent>
-                      
-                      <TabsContent value="player-props">
-                        <div className="text-center text-muted-foreground py-8">
-                          Player props betting markets coming soon...
-                        </div>
-                      </TabsContent>
-                    </Tabs>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Handicap Section */}
+                      <AccordionItem value="handicap">
+                        <AccordionTrigger className="text-lg font-semibold">
+                          Handicap
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          {match.spreads.length > 0 ? (
+                            <div className="space-y-3">
+                              {match.spreads.map((spread, index) => (
+                                <div key={index} className="grid grid-cols-2 gap-3">
+                                  <div className="text-center">
+                                    <p className="text-xs text-muted-foreground mb-1">
+                                      {match.homeTeam} ({spread.point > 0 ? '+' : ''}{spread.point})
+                                    </p>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => addToBetSlip(match, `${match.homeTeam} (${spread.point > 0 ? '+' : ''}${spread.point})`, spread.homeOdds)}
+                                      className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                    >
+                                      {spread.homeOdds.toFixed(2)}
+                                    </Button>
+                                  </div>
+                                  <div className="text-center">
+                                    <p className="text-xs text-muted-foreground mb-1">
+                                      {match.awayTeam} ({-spread.point > 0 ? '+' : ''}{-spread.point})
+                                    </p>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => addToBetSlip(match, `${match.awayTeam} (${-spread.point > 0 ? '+' : ''}${-spread.point})`, spread.awayOdds)}
+                                      className="w-full h-10 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-colors"
+                                    >
+                                      {spread.awayOdds.toFixed(2)}
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center text-muted-foreground py-8">
+                              No handicap markets available for this match.
+                            </div>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </CardContent>
                 </Card>
                 ))}
