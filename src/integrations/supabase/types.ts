@@ -145,6 +145,10 @@ export type Database = {
           total_points: number
         }[]
       }
+      invoke_update_odds_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
