@@ -82,6 +82,24 @@ export type Database = {
         }
         Relationships: []
       }
+      match_odds_cache: {
+        Row: {
+          data: Json
+          id: number
+          last_updated: string
+        }
+        Insert: {
+          data: Json
+          id?: number
+          last_updated?: string
+        }
+        Update: {
+          data?: Json
+          id?: number
+          last_updated?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           id: string
