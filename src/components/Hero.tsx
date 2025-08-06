@@ -50,7 +50,7 @@ const Hero = () => {
 
         {/* Additional info */}
         <p className="text-sm text-muted-foreground">
-          Únete a la única comunidad de apuestas fantasy.
+          Únete a la única comunidad que no pierde dinero apostando.
         </p>
       </div>
 
