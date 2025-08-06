@@ -45,12 +45,12 @@ const Hero = () => {
           className="mb-8"
           onClick={handleSignUpClick}
         >
-          Sign Up to Play
+          Regístrate Para Jugar
         </Button>
 
         {/* Additional info */}
         <p className="text-sm text-muted-foreground">
-          Join thousands of players in the most exciting fantasy soccer experience
+          Únete a la única comunidad de apuestas fantasy.
         </p>
       </div>
 
