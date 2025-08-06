@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import BetSlip from '@/components/BetSlip';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Json } from '@/integrations/supabase/types'; // Import the Json type
 
 // --- Type Definitions for API-Football Data ---
+// These interfaces describe the structure we EXPECT from the API data
 interface Team {
   id: number;
   name: string;
@@ -44,8 +46,10 @@ interface MatchData {
   bookmakers: Bookmaker[];
 }
 
-interface ApiResponse {
-  response: MatchData[];
+// This is the top-level structure of the 'data' field in our cache
+interface CachedOddsData {
+  response?: MatchData[]; // Make 'response' optional to handle empty cases
+  // Add any other top-level properties from the API if necessary
 }
 
 // --- Component ---
@@ -70,15 +74,14 @@ const Bets = () => {
           throw new Error('Failed to fetch data from cache.');
         }
 
-        // The 'data' property from the cache contains the full API response
-        const apiResponse: ApiResponse = cacheData.data as ApiResponse;
+        // Safely cast the fetched data. 'as unknown' is a necessary intermediate step.
+        const apiData = cacheData.data as unknown as CachedOddsData;
         
-        console.log("Parsed API Response:", apiResponse);
+        console.log("Parsed API Data:", apiData);
 
-        if (apiResponse && apiResponse.response && apiResponse.response.length > 0) {
-          setMatches(apiResponse.response);
+        if (apiData && Array.isArray(apiData.response)) {
+          setMatches(apiData.response);
         } else {
-          // This case handles when the API returns an empty 'response' array
           setMatches([]);
         }
 
@@ -119,7 +122,6 @@ const Bets = () => {
   };
 
   const findMarket = (match: MatchData, marketName: string) => {
-    // Use the first bookmaker's odds as a reference
     return match.bookmakers?.[0]?.bets.find(bet => bet.name === marketName);
   };
 
@@ -138,6 +140,7 @@ const Bets = () => {
             ))}
           </div>
           <div className="w-full md:w-1/3">
+             {/* Pass the required props to BetSlip */}
             <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
           </div>
         </div>
@@ -164,6 +167,10 @@ const Bets = () => {
           {matches.length > 0 ? (
             <Accordion type="single" collapsible className="w-full space-y-4">
               {matches.map((match) => {
+                // Check if fixture and teams exist to prevent runtime errors
+                if (!match.fixture?.teams?.home || !match.fixture?.teams?.away) {
+                  return null;
+                }
                 const matchWinnerMarket = findMarket(match, 'Match Winner');
                 const goalsMarket = findMarket(match, 'Goals Over/Under');
                 const bttsMarket = findMarket(match, 'Both Teams To Score');
@@ -230,6 +237,7 @@ const Bets = () => {
           )}
         </div>
         <div className="w-full md:w-1/3">
+           {/* Pass the required props to BetSlip */}
           <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
         </div>
       </div>
