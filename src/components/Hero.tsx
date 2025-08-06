@@ -30,14 +30,12 @@ const Hero = () => {
 
         {/* Main Headline */}
         <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-          The Ultimate LaLiga Fantasy Betting Challenge
+          Liga de Apuestas Simuladas
         </h2>
 
         {/* Sub-headline */}
         <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-          Compete with your friends in a fantasy soccer league with a twist. Get a €1000 budget each week, 
-          place your bets on real LaLiga matches, and climb the standings based on your winnings. 
-          It's not just about picking players, it's about picking winners.
+          Apostar nunca fue de ganar dinero, sino de demostrarle a los demás que sabes más de fútbol que ellos.
         </p>
 
         {/* CTA Button */}
