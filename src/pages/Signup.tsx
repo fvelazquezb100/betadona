@@ -55,7 +55,7 @@ const Signup = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-soccer-field-light/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-soccer-field">Join Betadona</CardTitle>
+          <CardTitle className="text-2xl font-bold text-soccer-field">Únete A Betadona</CardTitle>
           <CardDescription>
             Create your account to start playing the ultimate LaLiga fantasy betting challenge
           </CardDescription>
