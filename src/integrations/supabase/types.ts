@@ -145,7 +145,7 @@ export type Database = {
           total_points: number
         }[]
       }
-      invoke_update_odds_cache: {
+      invoke_football_cache_update: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
