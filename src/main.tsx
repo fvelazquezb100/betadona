@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { AuthProvider } from './hooks/useAuth.tsx' // Import the AuthProvider
+import { AuthProvider } from './hooks/useAuth' // Import the AuthProvider
 import { Toaster } from "@/components/ui/toaster"
 
 
