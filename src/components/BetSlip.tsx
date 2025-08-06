@@ -79,7 +79,7 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
       }));
 
       // Insert bets and update budget in a single transaction
-      const { error: insertError } = await supabase.rpc('place_bets_and_update_budget', {
+      const { error: insertError } = await supabase.rpc('place_bets_and_update_budget' as any, {
         bets_to_insert: newBetRows,
         new_budget: profile.weekly_budget - totalStake,
         user_id_to_update: user.id,
