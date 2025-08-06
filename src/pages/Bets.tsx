@@ -126,7 +126,7 @@ const Bets = () => {
           <div className="flex-grow space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="p-4 border rounded-lg bg-white shadow-sm">
-                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-6 w-3-r4 mb-2" />
                 <Skeleton className="h-4 w-1/2 mb-4" />
                 <Skeleton className="h-10 w-full" />
               </div>
