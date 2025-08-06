@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import BetSlip from '@/components/BetSlip';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import MainLayout from '@/components/MainLayout'; // Import the main layout
 import { Json } from '@/integrations/supabase/types';
 
 // Type Definitions for API-Football Data
@@ -119,129 +118,120 @@ const Bets = () => {
     return match.bookmakers?.[0]?.bets.find(bet => bet.name === marketName);
   };
 
-  // --- Conditional Rendering Logic ---
-  // This must come before the main return statement
   if (loading) {
     return (
-      <MainLayout>
-        <div className="container mx-auto p-4">
-          <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
-          <div className="flex flex-col md:flex-row gap-8">
-            <div className="flex-grow space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="p-4 border rounded-lg bg-white shadow-sm">
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2 mb-4" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ))}
-            </div>
-            <div className="w-full md:w-1/3">
-              <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
-            </div>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto p-4 text-center">
-          <div className="p-8 bg-red-100 text-red-700 rounded-lg shadow">
-            <h2 className="text-2xl font-bold mb-2">Error</h2>
-            <p>{error}</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  // --- Main Component Return ---
-  return (
-    <MainLayout>
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
         <div className="flex flex-col md:flex-row gap-8">
-          <div className="flex-grow">
-            {matches.length > 0 ? (
-              <Accordion type="single" collapsible className="w-full space-y-4">
-                {matches.map((match) => {
-                  if (!match.fixture?.teams?.home || !match.fixture?.teams?.away) {
-                    return null;
-                  }
-                  const matchWinnerMarket = findMarket(match, 'Match Winner');
-                  const goalsMarket = findMarket(match, 'Goals Over/Under');
-                  const bttsMarket = findMarket(match, 'Both Teams To Score');
-
-                  return (
-                    <AccordionItem value={`match-${match.fixture.id}`} key={match.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
-                      <AccordionTrigger>
-                        <div className="text-left">
-                          <p className="font-bold text-lg">{match.fixture.teams.home.name} vs {match.fixture.teams.away.name}</p>
-                          <p className="text-sm text-gray-500">{new Date(match.fixture.date).toLocaleString()}</p>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-4 pt-4">
-                          {matchWinnerMarket && (
-                            <div>
-                              <h4 className="font-semibold mb-2">Match Winner</h4>
-                              <div className="grid grid-cols-3 gap-2">
-                                {matchWinnerMarket.values.map(value => (
-                                  <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Match Winner', value)}>
-                                    <span>{value.value}</span>
-                                    <span className="font-bold">{value.odd}</span>
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {bttsMarket && (
-                             <div>
-                              <h4 className="font-semibold mb-2">Both Teams To Score</h4>
-                              <div className="grid grid-cols-2 gap-2">
-                                {bttsMarket.values.map(value => (
-                                  <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Both Teams To Score', value)}>
-                                    <span>{value.value}</span>
-                                    <span className="font-bold">{value.odd}</span>
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {goalsMarket && (
-                            <div>
-                              <h4 className="font-semibold mb-2">Goals Over/Under</h4>
-                               <div className="grid grid-cols-2 gap-2">
-                                {goalsMarket.values.map(value => (
-                                  <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Goals Over/Under', value)}>
-                                    <span>{value.value}</span>
-                                    <span className="font-bold">{value.odd}</span>
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )
-                })}
-              </Accordion>
-            ) : (
-              <div className="text-center p-8 bg-white rounded-lg shadow">
-                <p>No upcoming matches available at the moment.</p>
+          <div className="flex-grow space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="p-4 border rounded-lg bg-white shadow-sm">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2 mb-4" />
+                <Skeleton className="h-10 w-full" />
               </div>
-            )}
+            ))}
           </div>
           <div className="w-full md:w-1/3">
             <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
           </div>
         </div>
       </div>
-    </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <div className="p-8 bg-red-100 text-red-700 rounded-lg shadow">
+          <h2 className="text-2xl font-bold mb-2">Error</h2>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex-grow">
+          {matches.length > 0 ? (
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {matches.map((match) => {
+                if (!match.fixture?.teams?.home || !match.fixture?.teams?.away) {
+                  return null;
+                }
+                const matchWinnerMarket = findMarket(match, 'Match Winner');
+                const goalsMarket = findMarket(match, 'Goals Over/Under');
+                const bttsMarket = findMarket(match, 'Both Teams To Score');
+
+                return (
+                  <AccordionItem value={`match-${match.fixture.id}`} key={match.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                    <AccordionTrigger>
+                      <div className="text-left">
+                        <p className="font-bold text-lg">{match.fixture.teams.home.name} vs {match.fixture.teams.away.name}</p>
+                        <p className="text-sm text-gray-500">{new Date(match.fixture.date).toLocaleString()}</p>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4 pt-4">
+                        {matchWinnerMarket && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Match Winner</h4>
+                            <div className="grid grid-cols-3 gap-2">
+                              {matchWinnerMarket.values.map(value => (
+                                <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Match Winner', value)}>
+                                  <span>{value.value}</span>
+                                  <span className="font-bold">{value.odd}</span>
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {bttsMarket && (
+                           <div>
+                            <h4 className="font-semibold mb-2">Both Teams To Score</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {bttsMarket.values.map(value => (
+                                <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Both Teams To Score', value)}>
+                                  <span>{value.value}</span>
+                                  <span className="font-bold">{value.odd}</span>
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {goalsMarket && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Goals Over/Under</h4>
+                             <div className="grid grid-cols-2 gap-2">
+                              {goalsMarket.values.map(value => (
+                                <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Goals Over/Under', value)}>
+                                  <span>{value.value}</span>
+                                  <span className="font-bold">{value.odd}</span>
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
+          ) : (
+            <div className="text-center p-8 bg-white rounded-lg shadow">
+              <p>No upcoming matches available at the moment.</p>
+            </div>
+          )}
+        </div>
+        <div className="w-full md:w-1/3">
+          <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
+        </div>
+      </div>
+    </div>
   );
 };
 
