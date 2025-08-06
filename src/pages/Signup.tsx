@@ -35,15 +35,15 @@ const Signup = () => {
 
       if (data.user) {
         toast({
-          title: "Account created successfully!",
-          description: "Please check your email to verify your account.",
+          title: "Cuenta creada con éxito!",
+          description: "Revisa tu correo para verificar tu cuenta.",
         });
         navigate("/login");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error creating account",
+        title: "Error al crear la cuenta",
         description: error.message,
       });
     } finally {
@@ -57,7 +57,7 @@ const Signup = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-soccer-field">Únete A Betadona</CardTitle>
           <CardDescription>
-            Create your account to start playing the ultimate LaLiga fantasy betting challenge
+            Crea tu cuenta para unirte a la única comunidad de apuestas simuladas.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSignup}>
@@ -107,9 +107,9 @@ const Signup = () => {
               {loading ? "Creating Account..." : "Sign Up"}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Already have an account?{" "}
+              Ya tienes una cuenta?{" "}
               <Link to="/login" className="text-soccer-field hover:underline">
-                Sign in
+                Accede
               </Link>
             </p>
           </CardFooter>
