@@ -9,24 +9,64 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import BetSlip, { BetSelection } from "@/components/BetSlip";
 
-interface Match {
+interface BookmakerBet {
+  id: number;
+  name: string;
+  values: Array<{
+    value: string;
+    odd: string;
+  }>;
+}
+
+interface ApiFootballMatch {
+  fixture: {
+    id: number;
+    date: string;
+    timestamp: number;
+    home: {
+      id: number;
+      name: string;
+    };
+    away: {
+      id: number;
+      name: string;
+    };
+  };
+  bookmakers: Array<{
+    id: number;
+    name: string;
+    bets: BookmakerBet[];
+  }>;
+}
+
+interface ParsedMatch {
   id: string;
   homeTeam: string;
   awayTeam: string;
   startTime: string;
-  odds: {
-    homeWin: number;
-    draw: number;
-    awayWin: number;
-  };
-  totals: {
-    over25: number;
-    under25: number;
+  markets: {
+    matchWinner?: {
+      home?: number;
+      draw?: number;
+      away?: number;
+    };
+    goalsOverUnder?: Array<{
+      value: string;
+      odd: number;
+    }>;
+    asianHandicap?: Array<{
+      value: string;
+      odd: number;
+    }>;
+    bothTeamsToScore?: {
+      yes?: number;
+      no?: number;
+    };
   };
 }
 
 const Bets = () => {
-  const [matches, setMatches] = useState<Match[]>([]);
+  const [matches, setMatches] = useState<ParsedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [betSelections, setBetSelections] = useState<BetSelection[]>([]);
   const [userBudget, setUserBudget] = useState<number>(0);
@@ -43,7 +83,7 @@ const Bets = () => {
     });
   };
 
-  const addToBetSlip = (match: Match, selection: string, odds: number) => {
+  const addToBetSlip = (match: ParsedMatch, selection: string, odds: number) => {
     const betId = `${match.id}-${selection}`;
     const existingBet = betSelections.find(bet => bet.id === betId);
     
@@ -85,16 +125,76 @@ const Bets = () => {
     setBetSelections([]);
   };
 
+  const parseApiFootballData = (apiMatches: ApiFootballMatch[]): ParsedMatch[] => {
+    return apiMatches.map(match => {
+      const markets: ParsedMatch['markets'] = {};
+      
+      // Parse bookmaker data if available
+      if (match.bookmakers && match.bookmakers.length > 0) {
+        const bookmaker = match.bookmakers[0];
+        
+        bookmaker.bets.forEach(bet => {
+          switch (bet.name) {
+            case 'Match Winner':
+              markets.matchWinner = {};
+              bet.values.forEach(value => {
+                const odd = parseFloat(value.odd);
+                if (value.value === 'Home') markets.matchWinner!.home = odd;
+                else if (value.value === 'Draw') markets.matchWinner!.draw = odd;
+                else if (value.value === 'Away') markets.matchWinner!.away = odd;
+              });
+              break;
+              
+            case 'Goals Over/Under':
+              markets.goalsOverUnder = bet.values.map(value => ({
+                value: value.value,
+                odd: parseFloat(value.odd)
+              }));
+              break;
+              
+            case 'Asian Handicap':
+              markets.asianHandicap = bet.values.map(value => ({
+                value: value.value,
+                odd: parseFloat(value.odd)
+              }));
+              break;
+              
+            case 'Both Teams to Score':
+              markets.bothTeamsToScore = {};
+              bet.values.forEach(value => {
+                const odd = parseFloat(value.odd);
+                if (value.value === 'Yes') markets.bothTeamsToScore!.yes = odd;
+                else if (value.value === 'No') markets.bothTeamsToScore!.no = odd;
+              });
+              break;
+          }
+        });
+      }
+      
+      return {
+        id: match.fixture.id.toString(),
+        homeTeam: match.fixture.home.name,
+        awayTeam: match.fixture.away.name,
+        startTime: match.fixture.date,
+        markets
+      };
+    });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Fetch matches
-        const { data: oddsData, error: oddsError } = await supabase.functions.invoke('fetch-odds');
+        // Fetch cached football data
+        const { data: cacheData, error: cacheError } = await supabase
+          .from('match_odds_cache')
+          .select('data')
+          .eq('id', 1)
+          .single();
         
-        if (oddsError) {
-          console.error('Error fetching odds:', oddsError);
+        if (cacheError) {
+          console.error('Error fetching cached data:', cacheError);
           toast({
             title: "Error",
             description: "Failed to fetch live betting data. Please try again later.",
@@ -103,9 +203,12 @@ const Bets = () => {
           return;
         }
 
-        if (oddsData?.matches) {
-          console.log('Sample match data for debugging:', oddsData.matches[0]);
-          setMatches(oddsData.matches);
+        // Type cast the JSON data properly
+        const apiData = cacheData.data as { response?: ApiFootballMatch[] };
+        if (apiData?.response && Array.isArray(apiData.response)) {
+          console.log('Sample API-Football data for debugging:', apiData.response[0]);
+          const parsedMatches = parseApiFootballData(apiData.response);
+          setMatches(parsedMatches);
         }
 
         // Fetch user budget
@@ -197,8 +300,8 @@ const Bets = () => {
                   
                   <CardContent>
                     <Accordion type="single" defaultValue="result" collapsible className="w-full">
-                      {/* Result Section - Always available if odds exist */}
-                      {match.odds && (
+                      {/* Result Section - Match Winner */}
+                      {match.markets.matchWinner && (
                         <AccordionItem value="result">
                           <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                             <div className="flex items-center gap-2">
@@ -210,49 +313,55 @@ const Bets = () => {
                           </AccordionTrigger>
                           <AccordionContent className="space-y-4 animate-accordion-down">
                             <div className="grid grid-cols-3 gap-3">
-                              <div className="text-center">
-                                <p className="text-xs text-muted-foreground mb-2 font-medium">
-                                  {match.homeTeam}
-                                </p>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => addToBetSlip(match, `${match.homeTeam} to Win`, match.odds.homeWin)}
-                                  className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
-                                >
-                                  {match.odds.homeWin.toFixed(2)}
-                                </Button>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-xs text-muted-foreground mb-2 font-medium">
-                                  Draw
-                                </p>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => addToBetSlip(match, 'Draw', match.odds.draw)}
-                                  className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
-                                >
-                                  {match.odds.draw.toFixed(2)}
-                                </Button>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-xs text-muted-foreground mb-2 font-medium">
-                                  {match.awayTeam}
-                                </p>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => addToBetSlip(match, `${match.awayTeam} to Win`, match.odds.awayWin)}
-                                  className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
-                                >
-                                  {match.odds.awayWin.toFixed(2)}
-                                </Button>
-                              </div>
+                              {match.markets.matchWinner.home && (
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-2 font-medium">
+                                    {match.homeTeam}
+                                  </p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, `${match.homeTeam} to Win`, match.markets.matchWinner!.home!)}
+                                    className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
+                                  >
+                                    {match.markets.matchWinner.home.toFixed(2)}
+                                  </Button>
+                                </div>
+                              )}
+                              {match.markets.matchWinner.draw && (
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-2 font-medium">
+                                    Draw
+                                  </p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Draw', match.markets.matchWinner!.draw!)}
+                                    className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
+                                  >
+                                    {match.markets.matchWinner.draw.toFixed(2)}
+                                  </Button>
+                                </div>
+                              )}
+                              {match.markets.matchWinner.away && (
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-2 font-medium">
+                                    {match.awayTeam}
+                                  </p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, `${match.awayTeam} to Win`, match.markets.matchWinner!.away!)}
+                                    className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
+                                  >
+                                    {match.markets.matchWinner.away.toFixed(2)}
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </AccordionContent>
                         </AccordionItem>
                       )}
 
-                      {/* Goals Section - Only show if totals data exists */}
-                      {match.totals && (match.totals.over25 || match.totals.under25) && (
+                      {/* Goals Section - Over/Under */}
+                      {match.markets.goalsOverUnder && match.markets.goalsOverUnder.length > 0 && (
                         <AccordionItem value="goals">
                           <AccordionTrigger className="text-lg font-semibold hover:no-underline">
                             <div className="flex items-center gap-2">
@@ -266,31 +375,91 @@ const Bets = () => {
                             <div>
                               <h4 className="text-sm font-medium text-muted-foreground mb-3">Total Goals</h4>
                               <div className="grid grid-cols-2 gap-3">
-                                {match.totals.over25 && (
-                                  <div className="text-center">
-                                    <p className="text-xs text-muted-foreground mb-2">Over 2.5</p>
+                                {match.markets.goalsOverUnder.map((goal, index) => (
+                                  <div key={index} className="text-center">
+                                    <p className="text-xs text-muted-foreground mb-2">{goal.value}</p>
                                     <Button
                                       variant="outline"
-                                      onClick={() => addToBetSlip(match, 'Over 2.5 Goals', match.totals.over25)}
+                                      onClick={() => addToBetSlip(match, goal.value, goal.odd)}
                                       className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
                                     >
-                                      {match.totals.over25.toFixed(2)}
+                                      {goal.odd.toFixed(2)}
                                     </Button>
                                   </div>
-                                )}
-                                {match.totals.under25 && (
-                                  <div className="text-center">
-                                    <p className="text-xs text-muted-foreground mb-2">Under 2.5</p>
-                                    <Button
-                                      variant="outline"
-                                      onClick={() => addToBetSlip(match, 'Under 2.5 Goals', match.totals.under25)}
-                                      className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
-                                    >
-                                      {match.totals.under25.toFixed(2)}
-                                    </Button>
-                                  </div>
-                                )}
+                                ))}
                               </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+
+                      {/* Asian Handicap Section */}
+                      {match.markets.asianHandicap && match.markets.asianHandicap.length > 0 && (
+                        <AccordionItem value="handicap">
+                          <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                            <div className="flex items-center gap-2">
+                              <span>Handicap</span>
+                              <span className="text-sm text-muted-foreground font-normal">
+                                (Asian Handicap)
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-4 animate-accordion-down">
+                            <div>
+                              <h4 className="text-sm font-medium text-muted-foreground mb-3">Asian Handicap</h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                {match.markets.asianHandicap.map((handicap, index) => (
+                                  <div key={index} className="text-center">
+                                    <p className="text-xs text-muted-foreground mb-2">{handicap.value}</p>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => addToBetSlip(match, handicap.value, handicap.odd)}
+                                      className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
+                                    >
+                                      {handicap.odd.toFixed(2)}
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+
+                      {/* Both Teams to Score Section */}
+                      {match.markets.bothTeamsToScore && (
+                        <AccordionItem value="btts">
+                          <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                            <div className="flex items-center gap-2">
+                              <span>Both Teams to Score</span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="space-y-4 animate-accordion-down">
+                            <div className="grid grid-cols-2 gap-3">
+                              {match.markets.bothTeamsToScore.yes && (
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-2">Yes</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Both Teams to Score - Yes', match.markets.bothTeamsToScore!.yes!)}
+                                    className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
+                                  >
+                                    {match.markets.bothTeamsToScore.yes.toFixed(2)}
+                                  </Button>
+                                </div>
+                              )}
+                              {match.markets.bothTeamsToScore.no && (
+                                <div className="text-center">
+                                  <p className="text-xs text-muted-foreground mb-2">No</p>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => addToBetSlip(match, 'Both Teams to Score - No', match.markets.bothTeamsToScore!.no!)}
+                                    className="w-full h-11 text-sm font-bold hover:bg-soccer-field hover:text-white hover:border-soccer-field transition-all duration-200 hover-scale"
+                                  >
+                                    {match.markets.bothTeamsToScore.no.toFixed(2)}
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </AccordionContent>
                         </AccordionItem>
