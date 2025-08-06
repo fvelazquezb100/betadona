@@ -118,45 +118,27 @@ const Bets = () => {
     return match.bookmakers?.[0]?.bets.find(bet => bet.name === marketName);
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="flex-grow space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="p-4 border rounded-lg bg-white shadow-sm">
-                <Skeleton className="h-6 w-3-r4 mb-2" />
-                <Skeleton className="h-4 w-1/2 mb-4" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ))}
-          </div>
-          <div className="w-full md:w-1/3">
-            <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-4 text-center">
-        <div className="p-8 bg-red-100 text-red-700 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-2">Error</h2>
-          <p>{error}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-grow">
-          {matches.length > 0 ? (
+          {loading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="p-4 border rounded-lg bg-white shadow-sm">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-4" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="text-center p-8 bg-red-100 text-red-700 rounded-lg shadow">
+              <h2 className="text-2xl font-bold mb-2">Error</h2>
+              <p>{error}</p>
+            </div>
+          ) : matches.length > 0 ? (
             <Accordion type="single" collapsible className="w-full space-y-4">
               {matches.map((match) => {
                 if (!match.fixture?.teams?.home || !match.fixture?.teams?.away) {
