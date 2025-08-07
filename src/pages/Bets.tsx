@@ -3,28 +3,33 @@ import { supabase } from '../integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import BetSlip from '@/components/BetSlip';
 
-// --- Type Definitions for API-Football Fixture Data ---
+// --- Corrected Type Definitions for API-Football Fixture Data ---
 interface Team {
   id: number;
   name: string;
   logo: string;
 }
 
-interface FixtureData {
-  id: number;
-  date: string;
+// This represents a single item in the API's 'response' array
+interface FixtureResponseItem {
+  fixture: {
+    id: number;
+    date: string;
+  };
   teams: {
     home: Team;
     away: Team;
   };
 }
 
+// This represents the top-level structure of the cached data
 interface CachedFixturesData {
-  response?: { fixture: FixtureData }[];
+  response?: FixtureResponseItem[];
 }
 
 const Bets = () => {
-  const [fixtures, setFixtures] = useState<FixtureData[]>([]);
+  // State should hold the full response item, not just the fixture part
+  const [fixtures, setFixtures] = useState<FixtureResponseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedBets, setSelectedBets] = useState<any[]>([]);
@@ -45,10 +50,9 @@ const Bets = () => {
 
         const apiData = cacheData.data as unknown as CachedFixturesData;
         
+        // Check for the response array and set it directly
         if (apiData && Array.isArray(apiData.response)) {
-          // Extract the fixture object from each item in the response
-          const fixtureList = apiData.response.map(item => item.fixture);
-          setFixtures(fixtureList);
+          setFixtures(apiData.response);
         } else {
           setFixtures([]);
         }
@@ -103,13 +107,20 @@ const Bets = () => {
         <div className="flex-grow">
           {fixtures.length > 0 ? (
             <div className="space-y-4">
-              {fixtures.map((fixture) => (
-                <div key={fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
-                  <p className="font-bold text-lg">{fixture.teams.home.name} vs {fixture.teams.away.name}</p>
-                  <p className="text-sm text-gray-500">{new Date(fixture.date).toLocaleString()}</p>
-                  <p className="text-sm text-gray-400 mt-2">Odds will be available soon.</p>
-                </div>
-              ))}
+              {fixtures.map((item) => {
+                // Add a guard clause to prevent rendering items with incomplete data
+                if (!item.fixture || !item.teams?.home || !item.teams?.away) {
+                  return null;
+                }
+                return (
+                  <div key={item.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                    {/* Correctly access team names and fixture date */}
+                    <p className="font-bold text-lg">{item.teams.home.name} vs {item.teams.away.name}</p>
+                    <p className="text-sm text-gray-500">{new Date(item.fixture.date).toLocaleString()}</p>
+                    <p className="text-sm text-gray-400 mt-2">Odds will be available soon.</p>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center p-8 bg-white rounded-lg shadow">
