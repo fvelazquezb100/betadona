@@ -149,6 +149,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      place_bets_and_update_budget: {
+        Args: {
+          bets_to_insert: Json
+          new_budget: number
+          user_id_to_update: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
