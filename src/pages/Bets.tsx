@@ -1,41 +1,62 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
 import BetSlip from '@/components/BetSlip';
+import { useToast } from '@/components/ui/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// --- Corrected Type Definitions for API-Football Fixture Data ---
+// --- Type Definitions for API-Football Odds Data ---
 interface Team {
   id: number;
   name: string;
   logo: string;
 }
 
-// This represents a single item in the API's 'response' array
-interface FixtureResponseItem {
-  fixture: {
-    id: number;
-    date: string;
-  };
+interface Fixture {
+  id: number;
+  date: string;
   teams: {
     home: Team;
     away: Team;
   };
 }
 
-// This represents the top-level structure of the cached data
-interface CachedFixturesData {
-  response?: FixtureResponseItem[];
+interface BetValue {
+  value: string;
+  odd: string;
+}
+
+interface BetMarket {
+  id: number;
+  name: string;
+  values: BetValue[];
+}
+
+interface Bookmaker {
+  id: number;
+  name: string;
+  bets: BetMarket[];
+}
+
+interface MatchData {
+  fixture: Fixture;
+  bookmakers: Bookmaker[];
+}
+
+interface CachedOddsData {
+  response?: MatchData[];
 }
 
 const Bets = () => {
-  // State should hold the full response item, not just the fixture part
-  const [fixtures, setFixtures] = useState<FixtureResponseItem[]>([]);
+  const [matches, setMatches] = useState<MatchData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedBets, setSelectedBets] = useState<any[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchFixtures = async () => {
+    const fetchOdds = async () => {
       setLoading(true);
       setError(null);
       try {
@@ -48,36 +69,70 @@ const Bets = () => {
           throw new Error('Failed to fetch data from cache.');
         }
 
-        const apiData = cacheData.data as unknown as CachedFixturesData;
+        const apiData = cacheData.data as unknown as CachedOddsData;
         
-        // Check for the response array and set it directly
         if (apiData && Array.isArray(apiData.response)) {
-          setFixtures(apiData.response);
+          setMatches(apiData.response);
         } else {
-          setFixtures([]);
+          setMatches([]);
         }
 
       } catch (err: any) {
-        setError('Failed to fetch or parse fixture data. Please try again later.');
+        setError('Failed to fetch or parse live betting data. Please try again later.');
         console.error("Error details:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFixtures();
+    fetchOdds();
   }, []);
+
+  const handleAddToSlip = (match: MatchData, marketName: string, selection: BetValue) => {
+    const bet = {
+      id: `${match.fixture.id}-${marketName}-${selection.value}`,
+      matchDescription: `${match.fixture.teams.home.name} vs ${match.fixture.teams.away.name}`,
+      market: marketName,
+      selection: selection.value,
+      odds: parseFloat(selection.odd),
+    };
+
+    if (selectedBets.some(b => b.id === bet.id)) {
+      toast({
+        title: 'Bet already in slip',
+        description: 'You have already added this selection to your bet slip.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSelectedBets(prev => [...prev, bet]);
+    toast({
+      title: 'Bet added to slip!',
+      description: `${selection.value} @ ${selection.odd}`,
+    });
+  };
+
+  const findMarket = (match: MatchData, marketName: string) => {
+    // Check all bookmakers for the market, return the first one found.
+    for (const bookmaker of match.bookmakers) {
+        const market = bookmaker.bets.find(bet => bet.name === marketName);
+        if (market) return market;
+    }
+    return undefined;
+  };
 
   if (loading) {
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Upcoming Matches</h1>
+        <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
         <div className="flex flex-col md:flex-row gap-8">
           <div className="flex-grow space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="p-4 border rounded-lg bg-white shadow-sm">
                 <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-1/2 mb-4" />
+                <Skeleton className="h-10 w-full" />
               </div>
             ))}
           </div>
@@ -102,29 +157,77 @@ const Bets = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Upcoming Matches</h1>
+      <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-grow">
-          {fixtures.length > 0 ? (
-            <div className="space-y-4">
-              {fixtures.map((item) => {
-                // Add a guard clause to prevent rendering items with incomplete data
-                if (!item.fixture || !item.teams?.home || !item.teams?.away) {
+          {matches.length > 0 ? (
+            <Accordion type="single" collapsible className="w-full space-y-4">
+              {matches.map((match) => {
+                if (!match.fixture?.teams?.home || !match.fixture?.teams?.away) {
                   return null;
                 }
+                const matchWinnerMarket = findMarket(match, 'Match Winner');
+                const goalsMarket = findMarket(match, 'Goals Over/Under');
+                const bttsMarket = findMarket(match, 'Both Teams To Score');
+
                 return (
-                  <div key={item.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
-                    {/* Correctly access team names and fixture date */}
-                    <p className="font-bold text-lg">{item.teams.home.name} vs {item.teams.away.name}</p>
-                    <p className="text-sm text-gray-500">{new Date(item.fixture.date).toLocaleString()}</p>
-                    <p className="text-sm text-gray-400 mt-2">Odds will be available soon.</p>
-                  </div>
-                );
+                  <AccordionItem value={`match-${match.fixture.id}`} key={match.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                    <AccordionTrigger>
+                      <div className="text-left">
+                        <p className="font-bold text-lg">{match.fixture.teams.home.name} vs {match.fixture.teams.away.name}</p>
+                        <p className="text-sm text-gray-500">{new Date(match.fixture.date).toLocaleString()}</p>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4 pt-4">
+                        {matchWinnerMarket && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Match Winner</h4>
+                            <div className="grid grid-cols-3 gap-2">
+                              {matchWinnerMarket.values.map(value => (
+                                <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Match Winner', value)}>
+                                  <span>{value.value}</span>
+                                  <span className="font-bold">{value.odd}</span>
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {bttsMarket && (
+                           <div>
+                            <h4 className="font-semibold mb-2">Both Teams To Score</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {bttsMarket.values.map(value => (
+                                <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Both Teams To Score', value)}>
+                                  <span>{value.value}</span>
+                                  <span className="font-bold">{value.odd}</span>
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {goalsMarket && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Goals Over/Under</h4>
+                             <div className="grid grid-cols-2 gap-2">
+                              {goalsMarket.values.map(value => (
+                                <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Goals Over/Under', value)}>
+                                  <span>{value.value}</span>
+                                  <span className="font-bold">{value.odd}</span>
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
               })}
-            </div>
+            </Accordion>
           ) : (
             <div className="text-center p-8 bg-white rounded-lg shadow">
-              <p>No upcoming matches available at the moment.</p>
+              <p>No upcoming matches with odds are available at the moment.</p>
             </div>
           )}
         </div>
