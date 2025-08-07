@@ -25,8 +25,9 @@ Deno.serve(async (req) => {
     console.log('API Key found. Fetching data from API-Football...')
 
     // 3. Make the request to API-Football
-    const currentYear = new Date().getFullYear()
-    const response = await fetch(`https://v3.football.api-sports.io/odds?league=140&season=${currentYear}`, {
+    // Temporarily changed to 2023 to work with the free API plan
+    const seasonForRequest = '2023' 
+    const response = await fetch(`https://v3.football.api-sports.io/odds?league=140&season=${seasonForRequest}`, {
       headers: {
         'x-rapidapi-host': 'v3.football.api-sports.io',
         'x-rapidapi-key': apiKey,
