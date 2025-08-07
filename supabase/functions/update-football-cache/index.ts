@@ -24,10 +24,10 @@ Deno.serve(async (req) => {
     
     console.log('API Key found. Fetching data from API-Football...')
 
-    // 3. Make the request to API-Football
-    // Temporarily changed to 2023 to work with the free API plan
+    // 3. Make the request to API-Football's /fixtures endpoint
+    // We are using /fixtures now as it's confirmed to work with your key.
     const seasonForRequest = '2023' 
-    const response = await fetch(`https://v3.football.api-sports.io/odds?league=140&season=${seasonForRequest}`, {
+    const response = await fetch(`https://v3.football.api-sports.io/fixtures?league=140&season=${seasonForRequest}`, {
       headers: {
         'x-rapidapi-host': 'v3.football.api-sports.io',
         'x-rapidapi-key': apiKey,
@@ -39,14 +39,14 @@ Deno.serve(async (req) => {
       throw new Error(`API request failed with status ${response.status}: ${errorBody}`)
     }
 
-    const oddsData = await response.json()
-    console.log(`Successfully fetched data for ${oddsData.response?.length || 0} matches.`)
+    const fixturesData = await response.json()
+    console.log(`Successfully fetched data for ${fixturesData.response?.length || 0} fixtures.`)
 
     // 4. Update the cache table in your database
     const { error: updateError } = await supabaseAdmin
       .from('match_odds_cache')
       .update({
-        data: oddsData,
+        data: fixturesData, // Store the fixtures data in the cache
         last_updated: new Date().toISOString(),
       })
       .eq('id', 1) // Ensure we update the single row
