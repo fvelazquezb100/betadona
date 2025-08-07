@@ -6,7 +6,7 @@ import BetSlip from '@/components/BetSlip';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// --- Type Definitions for API-Football Odds Data ---
+// --- Corrected Type Definitions for API-Football Odds Data ---
 interface Team {
   id: number;
   name: string;
@@ -16,10 +16,11 @@ interface Team {
 interface Fixture {
   id: number;
   date: string;
-  teams: {
-    home: Team;
-    away: Team;
-  };
+}
+
+interface Teams {
+  home: Team;
+  away: Team;
 }
 
 interface BetValue {
@@ -39,8 +40,10 @@ interface Bookmaker {
   bets: BetMarket[];
 }
 
+// This now correctly represents a single item in the 'response' array
 interface MatchData {
   fixture: Fixture;
+  teams: Teams;
   bookmakers: Bookmaker[];
 }
 
@@ -72,9 +75,8 @@ const Bets = () => {
         const apiData = cacheData.data as unknown as CachedOddsData;
         
         if (apiData && Array.isArray(apiData.response)) {
-          // Filter out matches that don't have valid fixture or team data
           const validMatches = apiData.response.filter(match => 
-            match.fixture && match.fixture.teams?.home && match.fixture.teams?.away
+            match.fixture && match.teams?.home && match.teams?.away
           );
           setMatches(validMatches);
         } else {
@@ -95,7 +97,7 @@ const Bets = () => {
   const handleAddToSlip = (match: MatchData, marketName: string, selection: BetValue) => {
     const bet = {
       id: `${match.fixture.id}-${marketName}-${selection.value}`,
-      matchDescription: `${match.fixture.teams.home.name} vs ${match.fixture.teams.away.name}`,
+      matchDescription: `${match.teams.home.name} vs ${match.teams.away.name}`,
       market: marketName,
       selection: selection.value,
       odds: parseFloat(selection.odd),
@@ -162,7 +164,9 @@ const Bets = () => {
               <AccordionItem value={`match-${match.fixture.id}`} key={match.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
                 <AccordionTrigger>
                   <div className="text-left">
-                    <p className="font-bold text-lg">{match.fixture.teams.home.name} vs {match.fixture.teams.away.name}</p>
+                    {/* Correctly accessing team names */}
+                    <p className="font-bold text-lg">{match.teams.home.name} vs {match.teams.away.name}</p>
+                    {/* Correctly accessing fixture date */}
                     <p className="text-sm text-gray-500">{new Date(match.fixture.date).toLocaleString()}</p>
                   </div>
                 </AccordionTrigger>
