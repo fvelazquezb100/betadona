@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     // --- STEP 1: Fetch the NEXT 10 upcoming fixture IDs ---
     const currentYear = new Date().getFullYear();
     // This is the optimized call for just the next matchday
-    const fixturesResponse = await fetch(`https://v3.football.api-sports.io/fixtures?league=140&season=${currentYear}&next=10`, {
+    const fixturesResponse = await fetch(`https://v3.football.api-sports.io/fixtures?league=40&season=${currentYear}&next=10`, {
       headers: {
         'x-rapidapi-host': 'v3.football.api-sports.io',
         'x-rapidapi-key': apiKey,

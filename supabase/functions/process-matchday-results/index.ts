@@ -73,9 +73,9 @@ serve(async (req) => {
 
     console.log(`Fetching fixtures for date: ${dateString}`);
 
-    // Step 2: Fetch finished La Liga matches from previous day
+    // Step 2: Fetch finished UK Championship matches from previous day
     const fixturesResponse = await fetch(
-      `https://v3.football.api-sports.io/fixtures?league=140&date=${dateString}&status=FT`,
+      `https://v3.football.api-sports.io/fixtures?league=40&date=${dateString}&status=FT`,
       {
         headers: {
           'X-RapidAPI-Key': apiFootballKey,
