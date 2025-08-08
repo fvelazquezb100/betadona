@@ -151,4 +151,95 @@ const Bets = () => {
           <h2 className="text-2xl font-bold mb-2">Error</h2>
           <p>{error}</p>
         </div>
-     
+      );
+    }
+
+    if (matches.length > 0) {
+      return (
+        <Accordion type="single" collapsible className="w-full space-y-4">
+          {matches.map((match) => {
+            const matchWinnerMarket = findMarket(match, 'Match Winner');
+            const goalsMarket = findMarket(match, 'Goals Over/Under');
+            const bttsMarket = findMarket(match, 'Both Teams To Score');
+
+            return (
+              <AccordionItem value={`match-${match.fixture.id}`} key={match.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
+                <AccordionTrigger>
+                  <div className="text-left">
+                    <p className="font-bold text-lg">{match.teams.home.name} vs {match.teams.away.name}</p>
+                    <p className="text-sm text-gray-500">{new Date(match.fixture.date).toLocaleString()}</p>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-4">
+                    {matchWinnerMarket ? (
+                      <div>
+                        <h4 className="font-semibold mb-2">Match Winner</h4>
+                        <div className="grid grid-cols-3 gap-2">
+                          {matchWinnerMarket.values.map(value => (
+                            <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Match Winner', value)}>
+                              <span>{value.value}</span>
+                              <span className="font-bold">{value.odd}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {bttsMarket ? (
+                       <div>
+                        <h4 className="font-semibold mb-2">Both Teams To Score</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {bttsMarket.values.map(value => (
+                            <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Both Teams To Score', value)}>
+                              <span>{value.value}</span>
+                              <span className="font-bold">{value.odd}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {goalsMarket ? (
+                      <div>
+                        <h4 className="font-semibold mb-2">Goals Over/Under</h4>
+                         <div className="grid grid-cols-2 gap-2">
+                          {goalsMarket.values.map(value => (
+                            <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Goals Over/Under', value)}>
+                              <span>{value.value}</span>
+                              <span className="font-bold">{value.odd}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
+      );
+    }
+
+    return (
+      <div className="flex-grow text-center p-8 bg-white rounded-lg shadow">
+        <p>No upcoming matches with odds are available at the moment.</p>
+      </div>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">UK Championship - Live Odds</h1>
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex-grow">
+          {renderContent()}
+        </div>
+        <div className="w-full md:w-1/3">
+          <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Bets;
