@@ -6,7 +6,7 @@ import BetSlip from '@/components/BetSlip';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// --- Corrected Type Definitions for API-Football Odds Data ---
+// --- Final, Corrected Type Definitions for API-Football Odds Data ---
 interface Team {
   id: number;
   name: string;
@@ -40,7 +40,6 @@ interface Bookmaker {
   bets: BetMarket[];
 }
 
-// This now correctly represents a single item in the 'response' array
 interface MatchData {
   fixture: Fixture;
   teams: Teams;
@@ -74,6 +73,9 @@ const Bets = () => {
 
         const apiData = cacheData.data as unknown as CachedOddsData;
         
+        // CRITICAL DEBUGGING STEP: This will show you the raw data in the browser console.
+        console.log("Data from cache:", apiData);
+
         if (apiData && Array.isArray(apiData.response)) {
           const validMatches = apiData.response.filter(match => 
             match.fixture && match.teams?.home && match.teams?.away
@@ -105,8 +107,8 @@ const Bets = () => {
 
     if (selectedBets.some(b => b.id === bet.id)) {
       toast({
-        title: 'Apuesta ya en el boleto',
-        description: 'Ya has añadido esta selección a tu boleto de apuestas.',
+        title: 'Bet already in slip',
+        description: 'You have already added this selection to your bet slip.',
         variant: 'destructive',
       });
       return;
@@ -114,7 +116,7 @@ const Bets = () => {
 
     setSelectedBets(prev => [...prev, bet]);
     toast({
-      title: '¡Apuesta añadida al boleto!',
+      title: 'Bet added to slip!',
       description: `${selection.value} @ ${selection.odd}`,
     });
   };
@@ -149,97 +151,4 @@ const Bets = () => {
           <h2 className="text-2xl font-bold mb-2">Error</h2>
           <p>{error}</p>
         </div>
-      );
-    }
-
-    if (matches.length > 0) {
-      return (
-        <Accordion type="single" collapsible className="w-full space-y-4">
-          {matches.map((match) => {
-            const matchWinnerMarket = findMarket(match, 'Match Winner');
-            const goalsMarket = findMarket(match, 'Goals Over/Under');
-            const bttsMarket = findMarket(match, 'Both Teams To Score');
-
-            return (
-              <AccordionItem value={`match-${match.fixture.id}`} key={match.fixture.id} className="border rounded-lg p-4 bg-white shadow-sm">
-                <AccordionTrigger>
-                  <div className="text-left">
-                    {/* Correctly accessing team names */}
-                    <p className="font-bold text-lg">{match.teams.home.name} vs {match.teams.away.name}</p>
-                    {/* Correctly accessing fixture date */}
-                    <p className="text-sm text-gray-500">{new Date(match.fixture.date).toLocaleString()}</p>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4 pt-4">
-                    {matchWinnerMarket ? (
-                      <div>
-                        <h4 className="font-semibold mb-2">Ganador del Partido</h4>
-                        <div className="grid grid-cols-3 gap-2">
-                          {matchWinnerMarket.values.map(value => (
-                            <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Match Winner', value)}>
-                              <span>{value.value}</span>
-                              <span className="font-bold">{value.odd}</span>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                    {bttsMarket ? (
-                       <div>
-                        <h4 className="font-semibold mb-2">Ambos Equipos Marcan</h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {bttsMarket.values.map(value => (
-                            <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Both Teams To Score', value)}>
-                              <span>{value.value}</span>
-                              <span className="font-bold">{value.odd}</span>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                    {goalsMarket ? (
-                      <div>
-                        <h4 className="font-semibold mb-2">Goles Más/Menos de</h4>
-                         <div className="grid grid-cols-2 gap-2">
-                          {goalsMarket.values.map(value => (
-                            <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Goals Over/Under', value)}>
-                              <span>{value.value}</span>
-                              <span className="font-bold">{value.odd}</span>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            )
-          })}
-        </Accordion>
-      );
-    }
-
-    return (
-      <div className="flex-grow text-center p-8 bg-white rounded-lg shadow">
-        <p>No hay partidos con cuotas disponibles en este momento.</p>
-      </div>
-    );
-  };
-
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">UK Championship - Live Odds</h1>
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="flex-grow">
-          {renderContent()}
-        </div>
-        <div className="w-full md:w-1/3">
-          <BetSlip selectedBets={selectedBets} setSelectedBets={setSelectedBets} />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Bets;
+     
