@@ -37,7 +37,7 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
 
   const handlePlaceBets = async () => {
     if (!user) {
-      toast({ title: "Error", description: "You must be logged in to place bets.", variant: "destructive" });
+      toast({ title: "Error", description: "Debes iniciar sesión para realizar apuestas.", variant: "destructive" });
       return;
     }
 
@@ -49,7 +49,7 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
     })).filter(bet => bet.stake > 0);
 
     if (betsToPlace.length === 0) {
-      toast({ title: "No bets to place", description: "Please enter a stake for at least one bet.", variant: "destructive" });
+      toast({ title: "No hay apuestas que realizar", description: "Por favor, introduce un importe para al menos una apuesta.", variant: "destructive" });
       setIsSubmitting(false);
       return;
     }
@@ -64,8 +64,8 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
         .eq('id', user.id)
         .single();
 
-      if (profileError || !profile) throw new Error("Could not fetch user profile.");
-      if (profile.weekly_budget < totalStake) throw new Error("Insufficient budget.");
+      if (profileError || !profile) throw new Error("No se pudo obtener el perfil del usuario.");
+      if (profile.weekly_budget < totalStake) throw new Error("Presupuesto insuficiente.");
 
       // Prepare bets for insertion
       const newBetRows = betsToPlace.map(bet => ({
@@ -87,12 +87,12 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
 
       if (insertError) throw insertError;
 
-      toast({ title: "Success!", description: "Your bets have been placed." });
+      toast({ title: "¡Éxito!", description: "Tus apuestas han sido realizadas." });
       setSelectedBets([]);
       setStakes({});
 
     } catch (error: any) {
-      toast({ title: "Error placing bets", description: error.message, variant: "destructive" });
+      toast({ title: "Error al realizar apuestas", description: error.message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
@@ -107,11 +107,11 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
   return (
     <Card className="sticky top-4">
       <CardHeader>
-        <CardTitle>Bet Slip</CardTitle>
+        <CardTitle>Boleto de Apuestas</CardTitle>
       </CardHeader>
       <CardContent>
         {selectedBets.length === 0 ? (
-          <p className="text-sm text-gray-500">Click on odds to add bets to your slip.</p>
+          <p className="text-sm text-gray-500">Haz clic en una cuota para añadirla a tu boleto.</p>
         ) : (
           <div className="space-y-4">
             {selectedBets.map(bet => (
@@ -126,7 +126,7 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
                 <div className="flex items-center gap-2 mt-2">
                   <Input
                     type="number"
-                    placeholder="Stake"
+                    placeholder="Importe"
                     className="w-24 h-8"
                     value={stakes[bet.id] || ''}
                     onChange={(e) => handleStakeChange(bet.id, e.target.value)}
@@ -137,16 +137,16 @@ const BetSlip: React.FC<BetSlipProps> = ({ selectedBets, setSelectedBets }) => {
             ))}
             <div className="space-y-2 pt-4 border-t">
                 <div className="flex justify-between font-semibold">
-                    <span>Total Stake:</span>
+                    <span>Importe Total:</span>
                     <span>€{totalStake.toFixed(2)}</span>
                 </div>
                  <div className="flex justify-between text-sm">
-                    <span>Potential Winnings:</span>
+                    <span>Ganancia Potencial:</span>
                     <span>€{totalWinnings.toFixed(2)}</span>
                 </div>
             </div>
             <Button className="w-full" onClick={handlePlaceBets} disabled={isSubmitting || totalStake === 0}>
-              {isSubmitting ? 'Placing Bets...' : 'Place Bets'}
+              {isSubmitting ? 'Realizando Apuestas...' : 'Realizar Apuestas'}
             </Button>
           </div>
         )}

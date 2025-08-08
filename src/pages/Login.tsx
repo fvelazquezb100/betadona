@@ -28,15 +28,15 @@ const Login = () => {
 
       if (data.user) {
         toast({
-          title: "Welcome back!",
-          description: "Successfully signed in.",
+          title: "¡Bienvenido de vuelta!",
+          description: "Sesión iniciada exitosamente.",
         });
         navigate("/home");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error signing in",
+        title: "Error al iniciar sesión",
         description: error.message,
       });
     } finally {
@@ -48,30 +48,30 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-soccer-field-light/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-soccer-field">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-bold text-soccer-field">Bienvenido de Vuelta</CardTitle>
           <CardDescription>
-            Sign in to your Betadona account
+            Inicia sesión en tu cuenta de Betadona
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Correo Electrónico</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Introduce tu correo electrónico"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Introduce tu contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -85,12 +85,12 @@ const Login = () => {
               disabled={loading}
               variant="default"
             >
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? "Iniciando Sesión..." : "Iniciar Sesión"}
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Don't have an account?{" "}
+              ¿No tienes una cuenta?{" "}
               <Link to="/signup" className="text-soccer-field hover:underline">
-                Sign up
+                Regístrate
               </Link>
             </p>
           </CardFooter>

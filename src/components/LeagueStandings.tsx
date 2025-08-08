@@ -81,7 +81,7 @@ const LeagueStandings = () => {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-soccer-field">
-          League Standings
+          Clasificación de la Liga
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -89,10 +89,10 @@ const LeagueStandings = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Rank</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Player</th>
-                <th className="text-right py-4 px-6 font-semibold text-foreground">Total Points</th>
-                <th className="text-right py-4 px-6 font-semibold text-foreground">Last Matchday</th>
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Pos.</th>
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Jugador</th>
+                <th className="text-right py-4 px-6 font-semibold text-foreground">Puntos Totales</th>
+                <th className="text-right py-4 px-6 font-semibold text-foreground">Última Jornada</th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +117,7 @@ const LeagueStandings = () => {
               ) : standings.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                    No players found in the league
+                    No se encontraron jugadores en la liga
                   </td>
                 </tr>
               ) : (

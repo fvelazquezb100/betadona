@@ -105,8 +105,8 @@ const Bets = () => {
 
     if (selectedBets.some(b => b.id === bet.id)) {
       toast({
-        title: 'Bet already in slip',
-        description: 'You have already added this selection to your bet slip.',
+        title: 'Apuesta ya en el boleto',
+        description: 'Ya has añadido esta selección a tu boleto de apuestas.',
         variant: 'destructive',
       });
       return;
@@ -114,7 +114,7 @@ const Bets = () => {
 
     setSelectedBets(prev => [...prev, bet]);
     toast({
-      title: 'Bet added to slip!',
+      title: '¡Apuesta añadida al boleto!',
       description: `${selection.value} @ ${selection.odd}`,
     });
   };
@@ -174,7 +174,7 @@ const Bets = () => {
                   <div className="space-y-4 pt-4">
                     {matchWinnerMarket ? (
                       <div>
-                        <h4 className="font-semibold mb-2">Match Winner</h4>
+                        <h4 className="font-semibold mb-2">Ganador del Partido</h4>
                         <div className="grid grid-cols-3 gap-2">
                           {matchWinnerMarket.values.map(value => (
                             <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Match Winner', value)}>
@@ -187,7 +187,7 @@ const Bets = () => {
                     ) : null}
                     {bttsMarket ? (
                        <div>
-                        <h4 className="font-semibold mb-2">Both Teams To Score</h4>
+                        <h4 className="font-semibold mb-2">Ambos Equipos Marcan</h4>
                         <div className="grid grid-cols-2 gap-2">
                           {bttsMarket.values.map(value => (
                             <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Both Teams To Score', value)}>
@@ -200,7 +200,7 @@ const Bets = () => {
                     ) : null}
                     {goalsMarket ? (
                       <div>
-                        <h4 className="font-semibold mb-2">Goals Over/Under</h4>
+                        <h4 className="font-semibold mb-2">Goles Más/Menos de</h4>
                          <div className="grid grid-cols-2 gap-2">
                           {goalsMarket.values.map(value => (
                             <Button key={value.value} variant="outline" className="flex flex-col h-auto" onClick={() => handleAddToSlip(match, 'Goals Over/Under', value)}>
@@ -222,14 +222,14 @@ const Bets = () => {
 
     return (
       <div className="flex-grow text-center p-8 bg-white rounded-lg shadow">
-        <p>No upcoming matches with odds are available at the moment.</p>
+        <p>No hay partidos con cuotas disponibles en este momento.</p>
       </div>
     );
   };
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Spanish LaLiga - Live Odds</h1>
+      <h1 className="text-3xl font-bold mb-4">LaLiga - Cuotas en Vivo</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-grow">
           {renderContent()}

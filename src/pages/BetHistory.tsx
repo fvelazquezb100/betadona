@@ -59,19 +59,19 @@ const BetHistory = () => {
       case "won":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-            Won
+            Ganada
           </Badge>
         );
       case "lost":
         return (
           <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">
-            Lost
+            Perdida
           </Badge>
         );
       case "pending":
         return (
           <Badge variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-100">
-            Pending
+            Pendiente
           </Badge>
         );
       default:
@@ -89,17 +89,17 @@ const BetHistory = () => {
       <Navigation />
       
       <main className="container mx-auto px-6 py-8">
-        <h1 className="text-3xl font-bold text-soccer-field mb-8">My Bet History</h1>
+        <h1 className="text-3xl font-bold text-soccer-field mb-8">Mi Historial de Apuestas</h1>
         
         <div className="bg-card rounded-lg border shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="font-semibold">Match</TableHead>
-                <TableHead className="font-semibold">Bet</TableHead>
-                <TableHead className="font-semibold">Stake</TableHead>
-                <TableHead className="font-semibold">Odds</TableHead>
-                <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="font-semibold">Partido</TableHead>
+                <TableHead className="font-semibold">Apuesta</TableHead>
+                <TableHead className="font-semibold">Importe</TableHead>
+                <TableHead className="font-semibold">Cuota</TableHead>
+                <TableHead className="font-semibold">Resultado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -127,16 +127,16 @@ const BetHistory = () => {
               ) : bets.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                    No bets found. Start placing your first bet!
+                    No se encontraron apuestas. ¡Comienza realizando tu primera apuesta!
                   </TableCell>
                 </TableRow>
               ) : (
                 bets.map((bet) => (
                   <TableRow key={bet.id} className="hover:bg-muted/50 transition-colors">
                     <TableCell className="font-medium">
-                      {bet.match_description || "Unknown Match"}
+                      {bet.match_description || "Partido Desconocido"}
                     </TableCell>
-                    <TableCell>{bet.bet_selection || "Unknown Bet"}</TableCell>
+                    <TableCell>{bet.bet_selection || "Apuesta Desconocida"}</TableCell>
                     <TableCell className="font-semibold">
                       €{bet.stake ? Number(bet.stake).toFixed(2) : "0.00"}
                     </TableCell>

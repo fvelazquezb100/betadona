@@ -92,20 +92,20 @@ const Header = () => {
           {/* User Info */}
           <div className="flex items-center space-x-8">
             <div className="text-right">
-              <p className="text-sm text-soccer-field-light">User</p>
-              <p className="font-semibold">{profile?.username || "Loading..."}</p>
+              <p className="text-sm text-soccer-field-light">Usuario</p>
+              <p className="font-semibold">{profile?.username || "Cargando..."}</p>
             </div>
             
             <div className="text-right">
-              <p className="text-sm text-soccer-field-light">Weekly Budget</p>
+              <p className="text-sm text-soccer-field-light">Presupuesto Semanal</p>
               <p className="font-semibold text-soccer-gold">
                 €{profile?.weekly_budget || 0}
               </p>
             </div>
             
             <div className="text-right">
-              <p className="text-sm text-soccer-field-light">League</p>
-              <p className="font-semibold">{league?.name || "No League"}</p>
+              <p className="text-sm text-soccer-field-light">Liga</p>
+              <p className="font-semibold">{league?.name || "Sin Liga"}</p>
             </div>
           </div>
         </div>

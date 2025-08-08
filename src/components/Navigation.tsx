@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 
 const Navigation = () => {
   const navItems = [
-    { name: "Home", path: "/home" },
-    { name: "Bets", path: "/bets" },
-    { name: "Bet History", path: "/bet-history" },
+    { name: "Clasificación", path: "/home" },
+    { name: "Apuestas", path: "/bets" },
+    { name: "Historial", path: "/bet-history" },
   ];
 
   return (
