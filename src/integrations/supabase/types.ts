@@ -149,6 +149,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      invoke_matchday_results_processing: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       place_bets_and_update_budget: {
         Args: {
           bets_to_insert: Json
